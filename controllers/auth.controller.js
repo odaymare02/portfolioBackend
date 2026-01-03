@@ -3,9 +3,21 @@ const User=require('../models/User');
 const jwt=require("jsonwebtoken");
 
 exports.register=async(req,res)=>{
-    const{username,password}=req.body;
-    const user=await User.create({username,password});
+    try {
+    const { username, password } = req.body;
+
+    const existingUser = await User.findOne({ username }).collation({ locale: "en", strength: 2 });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    const user = await User.create({ username, password });
+
     return res.status(201).json(user);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
 };
 
 exports.login=async(req,res)=>{
